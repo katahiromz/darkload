@@ -133,6 +133,7 @@ namespace CodeReverse
         {
             return m_name2value.empty() && m_value2name.empty();
         }
+
         static std::vector<LogEnum>& all(void)
         {
             static std::vector<LogEnum> s_log_enums;
@@ -150,6 +151,7 @@ namespace CodeReverse
         Position    m_pos;
         bool        m_is_macro;
         ScopeID     m_scope_id;
+
         static std::vector<LogVar>& all(void)
         {
             static std::vector<LogVar> s_log_vars;
@@ -168,6 +170,7 @@ namespace CodeReverse
         std::vector<std::string>    m_params;
         Position                    m_pos;
         LogMacro() : m_num_params(0), m_ellipsis(false) { }
+
         static std::vector<LogMacro>& all(void)
         {
             static std::vector<LogMacro> s_log_macros;
