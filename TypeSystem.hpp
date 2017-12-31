@@ -134,8 +134,9 @@ namespace CodeReverse
     struct LogVar
     {
         string_type m_name;
-        Value       m_value;
+        TypeID      m_type_id = invalid_id();
         Position    m_pos;
+        Value       m_value;
         bool        m_is_macro = false;
         ScopeID     m_scope_id = 0;
 
@@ -206,19 +207,22 @@ namespace CodeReverse
 
     /////////////////////////////////////////////////////////////////////////
 
+    enum EntryType
+    {
+        ET_VAR, ET_ENUM_VALUE, ET_TYPEDEF_NAME, ET_FUNC
+    };
+
     struct LogEntity
     {
         string_type             m_name;
 
-        enum EntryType {
-            E_VAR, E_ENUM_VALUE, E_TYPEDEF_NAME, E_FUNC
-        }                       m_entry_type;
+        EntryType               m_entry_type = ET_VAR;
 
         TypeID                  m_type_id = invalid_id();
         ID                      m_sub_id = invalid_id();
-            // m_sub_id == VarID if E_VAR, E_ENUM_VALUE,
-            // m_sub_id == TypeID if E_TYPEDEF_NAME,
-            // m_sub_id == FuncID if E_FUNC.
+            // m_sub_id is a VarID if ET_VAR, ET_ENUM_VALUE,
+            // m_sub_id is a TypeID if ET_TYPEDEF_NAME,
+            // m_sub_id is a FuncID if ET_FUNC.
         ScopeID                 m_scope_id = 0;
         Position                m_pos;
 
@@ -231,13 +235,16 @@ namespace CodeReverse
 
     /////////////////////////////////////////////////////////////////////////
 
+    enum TagType
+    {
+        TT_STRUCT, TT_UNION, TT_ENUM
+    };
+
     struct LogTag
     {
         string_type             m_tag_name;
         TagID                   m_tag_id = invalid_id();
-        enum {
-            T_STRUCT, T_UNION, T_ENUM
-        }                       m_tag_type = T_STRUCT;
+        TagType                 m_tag_type = TT_STRUCT;
         TypeID                  m_type_id = invalid_id();
         ScopeID                 m_scope_id = 0;
         Position                m_pos;
