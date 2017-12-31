@@ -18,10 +18,9 @@ namespace CodeReverse
 
     typedef size_t ID;
         typedef ID EntityID;    // for the index in LogEntity::all()
-            typedef EntityID EnumValueID;
-            typedef EntityID FuncID;
-            typedef EntityID VarID;
-            typedef EntityID TypeID;
+        typedef ID FuncID;      // for the index in LogFunc::all()
+        typedef ID VarID;       // for the index in LogVar::all()
+        typedef ID TypeID;      // for the index in LogType::all()
         typedef ID MacroID;     // for the index in LogMacro::all()
         typedef ID ScopeID;     // for the index in LogScope::all()
         typedef ID TagID;       // for the index in LogTag::all()
@@ -59,7 +58,6 @@ namespace CodeReverse
 
     struct LogFunc
     {
-        FuncID      m_func_id = invalid_id();
         bool        m_ellipse = false;
         TypeID      m_return_type = invalid_id();
 
@@ -144,11 +142,10 @@ namespace CodeReverse
     struct LogVar
     {
         string_type m_name;
-        VarID       m_var_id;
         Value       m_value;
         Position    m_pos;
-        bool        m_is_macro;
-        ScopeID     m_scope_id;
+        bool        m_is_macro = false;
+        ScopeID     m_scope_id = 0;
 
         static std::vector<LogVar>& all(void)
         {
@@ -221,12 +218,16 @@ namespace CodeReverse
     {
         string_type             m_name;
 
-        enum Kind {
-            E_VAR, E_TYPEDEF_NAME, E_ENUM_VALUE, E_FUNC
-        }                       m_kind;
+        enum EntryType {
+            E_VAR, E_ENUM_VALUE, E_TYPEDEF_NAME, E_FUNC
+        }                       m_entry_type;
 
+        TypeID                  m_type_id = invalid_id();
+        ID                      m_sub_id = invalid_id();
+            // m_sub_id == VarID if E_VAR, E_ENUM_VALUE,
+            // m_sub_id == TypeID if E_TYPEDEF_NAME,
+            // m_sub_id == FuncID if E_FUNC.
         ScopeID                 m_scope_id = 0;
-        Value                   m_value;
         Position                m_pos;
 
         static std::vector<LogEntity>& all(void)
@@ -240,13 +241,14 @@ namespace CodeReverse
 
     struct LogTag
     {
-        TagID                   m_tag_id = invalid_id();
         string_type             m_tag_name;
+        TagID                   m_tag_id = invalid_id();
         enum {
             T_STRUCT, T_UNION, T_ENUM
-        }                       m_type = T_STRUCT;
+        }                       m_tag_type = T_STRUCT;
         TypeID                  m_type_id = invalid_id();
         ScopeID                 m_scope_id = 0;
+        Position                m_pos;
 
         static std::vector<LogTag>& all(void)
         {
@@ -275,7 +277,6 @@ namespace CodeReverse
 
     struct LogType
     {
-        EntityID                    m_type_id = invalid_id();
         string_type                 m_type_name;
         ID                          m_sub_id = invalid_id();
 
