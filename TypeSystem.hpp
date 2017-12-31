@@ -26,6 +26,8 @@ namespace CodeReverse
         typedef ID ScopeID;     // for the index in LogScope::all()
         typedef ID TagID;       // for the index in LogTag::all()
 
+    typedef std::unordered_map<string_type, ID> name2id_type;
+
     inline ID invalid_id(void)
     {
         return ID(-1);
@@ -184,33 +186,33 @@ namespace CodeReverse
 
     struct LogScope
     {
-        ScopeID                 m_scope_id;
-        ScopeID                 m_parent_id;
+        ScopeID                 m_scope_id = 0;
+        ScopeID                 m_parent_id = invalid_id();
         std::set<ScopeID>       m_child_scope_ids;
 
         std::set<EntityID>      m_entity_ids;
         std::set<TagID>         m_tag_ids;
         std::set<LabelID>       m_label_ids;
 
-        std::unordered_map<string_type, EntityID>   m_entry_map;
-        std::unordered_map<string_type, TagID>      m_tag_map;
-        std::unordered_map<string_type, LabelID>    m_label_map;
+        name2id_type            m_entry_map;
+        name2id_type            m_tag_map;
+        name2id_type            m_label_map;
 
-        static EntryID name_to_entry_id(const LogScope& scope, const string_type& name);
-        static TagID name_to_tag_id(const LogScope& scope, const string_type& tag_name);
-        static LabelID name_to_label_id(const LogScope& scope, const string_type& name);
+        EntryID name_to_entry_id(const string_type& name) const;
+        TagID name_to_tag_id(const string_type& tag_name) const;
+        LabelID name_to_label_id(const string_type& name) const;
 
         bool has_entry(const string_type& name) const
         {
-            return name_to_entry_id(*this, name) != invalid_id();
+            return name_to_entry_id(name) != invalid_id();
         }
         bool has_tag(const string_type& name) const
         {
-            return name_to_tag_id(*this, name) != invalid_id();
+            return name_to_tag_id(name) != invalid_id();
         }
         bool has_label(const string_type& name) const
         {
-            return name_to_label_id(*this, name) != invalid_id();
+            return name_to_label_id(name) != invalid_id();
         }
 
         static std::vector<LogScope>& all(void)
