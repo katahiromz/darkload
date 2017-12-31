@@ -1,3 +1,5 @@
+// Main.hpp --- darkload main
+// Copyright (C) 2017 Katayama Hirofumi MZ. License: MIT License
 #include "CParser.hpp"
 #include <iostream>
 #include <fstream>

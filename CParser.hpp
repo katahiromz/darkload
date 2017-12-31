@@ -1,3 +1,5 @@
+// CParser.hpp --- CodeReverse C parser header
+// Copyright (C) 2017 Katayama Hirofumi MZ. License: MIT License
 #ifndef CODEREVERSE_C_PARSER_HPP
 #define CODEREVERSE_C_PARSER_HPP
 

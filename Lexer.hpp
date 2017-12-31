@@ -1,3 +1,5 @@
+// Lexer.hpp --- CodeReverse lexical analysis
+// Copyright (C) 2017 Katayama Hirofumi MZ. License: MIT License
 #ifndef CODEREVERSE_LEXER_HPP
 #define CODEREVERSE_LEXER_HPP
 

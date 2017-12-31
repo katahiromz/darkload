@@ -1,3 +1,5 @@
+// TextScanner.hpp --- CodeReverse TextScanner
+// Copyright (C) 2017 Katayama Hirofumi MZ. License: MIT License
 #ifndef CODEREVERSE_TEXT_SCANNER_HPP
 #define CODEREVERSE_TEXT_SCANNER_HPP
 
