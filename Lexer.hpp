@@ -187,6 +187,7 @@ namespace CodeReverse
             "__forceinline",
             "__inline",
             "__inline__",
+            "__int128",
             "__int64",
             "__pragma",
             "__ptr64",
