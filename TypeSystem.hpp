@@ -346,20 +346,22 @@ namespace CodeReverse
         ScopeID                 m_parent_id = invalid_id();
         std::set<ScopeID>       m_child_scope_ids;
 
-        std::set<EntityID>      m_entity_ids;
-        std::set<TagID>         m_tag_ids;
-        std::set<LabelID>       m_label_ids;
-
+        name2id_type            m_type_map;
         name2id_type            m_entry_map;
         name2id_type            m_tag_map;
         name2id_type            m_label_map;
 
+        TypeID name_to_type_id(const string_type& name) const;
         EntryID name_to_entry_id(const string_type& name) const;
         TagID name_to_tag_id(const string_type& tag_name) const;
         LabelID name_to_label_id(const string_type& name) const;
 
         LogScope(ScopeID parent_scope_id = invalid_id());
 
+        bool has_type(const string_type& name) const
+        {
+            return name_to_type_id(name) != invalid_id();
+        }
         bool has_entry(const string_type& name) const
         {
             return name_to_entry_id(name) != invalid_id();

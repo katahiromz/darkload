@@ -104,6 +104,24 @@ namespace CodeReverse
         }
     }
 
+    TypeID LogScope::name_to_type_id(const string_type& name) const
+    {
+        auto it = m_type_map.find(name);
+        if (it == m_type_map.end())
+        {
+            for (auto scope_id : m_child_scope_ids)
+            {
+                auto& scope = all()[scope_id];
+                auto id = scope.name_to_type_id(name);
+                if (id != invalid_id())
+                {
+                    return id;
+                }
+            }
+            return invalid_id();
+        }
+        return it->second;
+    }
     EntryID LogScope::name_to_entry_id(const string_type& name) const
     {
         auto it = m_entry_map.find(name);
