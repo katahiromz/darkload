@@ -1,4 +1,4 @@
-// TypeInfo.cpp --- CodeReverse type system
+// TypeSystem.cpp --- CodeReverse type system
 // Copyright (C) 2017 Katayama Hirofumi MZ. License: MIT License
 
 #include "TypeSystem.hpp"

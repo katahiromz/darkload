@@ -1,4 +1,4 @@
-// TypeInfo.hpp --- CodeReverse type system
+// TypeSystem.hpp --- CodeReverse type system
 // Copyright (C) 2017 Katayama Hirofumi MZ. License: MIT License
 #ifndef CODEREVERSE_TYPE_SYSTEM_HPP
 #define CODEREVERSE_TYPE_SYSTEM_HPP
@@ -351,9 +351,9 @@ namespace CodeReverse
         name2id_type            m_tag_map;
         name2id_type            m_label_map;
 
-        TypeID name_to_type_id(const string_type& name) const;
+        TypeID  name_to_type_id(const string_type& name) const;
         EntryID name_to_entry_id(const string_type& name) const;
-        TagID name_to_tag_id(const string_type& tag_name) const;
+        TagID   name_to_tag_id(const string_type& tag_name) const;
         LabelID name_to_label_id(const string_type& name) const;
 
         LogScope(ScopeID parent_scope_id = invalid_id());
