@@ -57,6 +57,7 @@ namespace CodeReverse
 
     struct LogFunc
     {
+        EntityID    m_entity_id;
         bool        m_ellipse;
         TypeID      m_return_type;
 
@@ -65,14 +66,15 @@ namespace CodeReverse
         } m_convention;
         std::vector<LogFuncParam> m_param_list;
 
-        LogFunc()
-            : m_ellipse(false), m_return_type(0), m_convention(LFC_CDECL) { }
+        LogFunc() : m_ellipse(false), m_return_type(-1),
+                    m_convention(LFC_CDECL) { }
+
+        static std::vector<LogFunc>& all()
+        {
+            static std::vector<LogFunc> s_log_funcs;
+            return s_log_funcs;
+        }
     };
-    inline std::vector<LogFunc>& get_log_funcs(void)
-    {
-        static std::vector<LogFunc> s_log_funcs;
-        return s_log_funcs;
-    }
 
     /////////////////////////////////////////////////////////////////////////
     // LogStruct
@@ -94,6 +96,7 @@ namespace CodeReverse
 
     struct LogStruct
     {
+        TagID           m_tag_id;
         TypeID          m_type_id;
         bool            m_is_struct;
         int             m_pack;
@@ -111,12 +114,13 @@ namespace CodeReverse
 
         bool empty() const { return m_members.empty(); }
         size_t size() const { return m_members.size(); }
+
+        static std::vector<LogStruct>& all(void)
+        {
+            static std::vector<LogStruct> s_log_structs;
+            return s_log_structs;
+        }
     };
-    inline std::vector<LogStruct>& get_log_structs(void)
-    {
-        static std::vector<LogStruct> s_log_structs;
-        return s_log_structs;
-    }
 
     /////////////////////////////////////////////////////////////////////////
     // LogEnum
@@ -129,13 +133,12 @@ namespace CodeReverse
         {
             return m_name2value.empty() && m_value2name.empty();
         }
+        static std::vector<LogEnum>& all(void)
+        {
+            static std::vector<LogEnum> s_log_enums;
+            return s_log_enums;
+        }
     };
-    inline std::vector<LogEnum>& get_log_enums(void)
-    {
-        static std::vector<LogEnum> s_log_enums;
-        return s_log_enums;
-    }
-    EnumID name_to_enum_id(const string_type& name);
 
     /////////////////////////////////////////////////////////////////////////
     // LogVar
@@ -147,13 +150,12 @@ namespace CodeReverse
         Position    m_pos;
         bool        m_is_macro;
         ScopeID     m_scope_id;
+        static std::vector<LogVar>& all(void)
+        {
+            static std::vector<LogVar> s_log_vars;
+            return s_log_vars;
+        }
     };
-    inline std::vector<LogVar>& get_log_vars(void)
-    {
-        static std::vector<LogVar> s_log_vars;
-        return s_log_vars;
-    }
-    VarID name_to_var_id(const string_type& name);
 
     /////////////////////////////////////////////////////////////////////////
     // LogMacro
@@ -166,13 +168,12 @@ namespace CodeReverse
         std::vector<std::string>    m_params;
         Position                    m_pos;
         LogMacro() : m_num_params(0), m_ellipsis(false) { }
+        static std::vector<LogMacro>& all(void)
+        {
+            static std::vector<LogMacro> s_log_macros;
+            return s_log_macros;
+        }
     };
-    inline std::vector<LogMacro>& get_log_macros(void)
-    {
-        static std::vector<LogMacro> s_log_macros;
-        return s_log_macros;
-    }
-    MacroID name_to_macro_id(const string_type& name);
 
     /////////////////////////////////////////////////////////////////////////
 
@@ -180,15 +181,27 @@ namespace CodeReverse
     {
         ScopeID                 m_parent_id;
         std::set<ScopeID>       m_child_scope_ids;
+
         std::set<EntityID>      m_entity_ids;
         std::set<TagID>         m_tag_ids;
         std::set<LabelID>       m_label_ids;
+
+        std::unordered_map<string_type, EntityID>   m_entry_map;
+        std::unordered_map<string_type, TagID>      m_tag_map;
+        std::unordered_map<string_type, LabelID>    m_label_map;
+
+        static EntryID name_to_entry_id(LogScope& scope, const string_type& name);
+        static TagID name_to_tag_id(LogScope& scope, const string_type& tag_name);
+        static LabelID name_to_label_id(LogScope& scope, const string_type& name);
+
+        static std::vector<LogScope>& all(void)
+        {
+            static std::vector<LogScope> s_log_scopes;
+            return s_log_scopes;
+        }
     };
-    inline std::vector<LogScope>& get_log_scopes(void)
-    {
-        static std::vector<LogScope> s_log_scopes;
-        return s_log_scopes;
-    }
+
+    /////////////////////////////////////////////////////////////////////////
 
     struct LogEntity
     {
@@ -199,13 +212,15 @@ namespace CodeReverse
         TypeID                  m_type_id;
         ScopeID                 m_scope_id;
         TypedValue              m_typed_value;
+
+        static std::vector<LogEntity>& all(void)
+        {
+            static std::vector<LogEntity> s_log_entities;
+            return s_log_entities;
+        }
     };
-    inline std::vector<LogEntity>& get_log_entities(void)
-    {
-        static std::vector<LogEntity> s_log_entities;
-        return s_log_entities;
-    }
-    EntityID name_to_entity_id(const string_type& name);
+
+    /////////////////////////////////////////////////////////////////////////
 
     // NOTE: A tag is a struct, a union or an enum.
     struct Tag
@@ -216,25 +231,31 @@ namespace CodeReverse
         } m_type;
         TypeID m_type_id;
         ScopeID m_scope_id;
+
+        static std::vector<Tag>& all(void)
+        {
+            static std::vector<Tag> s_log_tags;
+            return s_log_tags;
+        }
     };
-    inline std::vector<Tag>& get_log_tags(void)
-    {
-        static std::vector<Tag> s_log_tags;
-        return s_log_tags;
-    }
-    TagID tag_name_to_tag_id(const string_type& tag_name);
+
+    /////////////////////////////////////////////////////////////////////////
+    // LogLabel
 
     struct LogLabel
     {
         string_type m_label_name;
         string_type m_func_name;
+        ScopeID m_scope_id;
+
+        static std::vector<LogLabel>& all(void)
+        {
+            static std::vector<LogLabel> s_log_labels;
+            return s_log_labels;
+        }
     };
-    inline std::vector<LogLabel>& get_log_labels(void)
-    {
-        static std::vector<LogLabel> s_log_labels;
-        return s_log_labels;
-    }
-    LabelID name_to_label_id(const string_type& name);
+
+    /////////////////////////////////////////////////////////////////////////
 
     struct LogType
     {
@@ -324,6 +345,12 @@ namespace CodeReverse
         bool is_floating() const
         {
             return is_floating(m_flags);
+        }
+
+        static std::vector<LogType>& all(void)
+        {
+            static std::vector<LogType> s_log_types;
+            return s_log_types;
         }
     };
 } // namespace CodeReverse
