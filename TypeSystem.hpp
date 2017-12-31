@@ -74,20 +74,21 @@ namespace CodeReverse
             T_SHORT         = 0x00000008,
             T_INT           = 0x00000010,
             T_LONG          = 0x00000020,
-            T_INT64         = 0x00000040 | T_INT,
-            T_LONGLONG      = T_INT64,
-            // signed/unsigned/enum-value
-            T_SIGNED        = 0x00000080,
-            T_UNSIGNED      = 0x00000100,
-            T_SIGNED_MASK   = 0x00000200,
+            T_LONGLONG      = 0x00000040 | T_INT,
+            T_INT64         = T_LONGLONG,
+            T_INTEGER       = 0x00000080,
+            // signed/unsigned
+            T_SIGNED        = 0x00000100,
+            T_UNSIGNED      = 0x00000200,
+            T_SIGN_MASK     = 0x00000300,
             // enum values
             T_ENUM_VALUE    = 0x00000400,
             // floatings
             T_FLOATING      = 0x00000800;
             T_FLOAT         = T_FLOATING,
             T_DOUBLE        = 0x00001000 | T_FLOATING,
-            T_FLOAT80       = 0x00002000 | T_FLOATING,
-            T_FLOAT128      = 0x00003000 | T_FLOATING,
+            T_FLOAT80       = 0x00001800 | T_FLOATING,
+            T_FLOAT128      = 0x00002000 | T_FLOATING,
             T_FLOATING_MASK = T_FLOAT | T_DOUBLE | T_FLOAT80 | T_FLOAT128,
             // complex, imaginary
             T_COMPLEX       = 0x00004000,
