@@ -55,6 +55,7 @@ namespace CodeReverse
 
     struct LogFunc
     {
+        string_type m_name;
         bool        m_ellipse = false;
         TypeID      m_return_type = invalid_id();
 
@@ -197,6 +198,27 @@ namespace CodeReverse
         {
             return name_to_label_id(name) != invalid_id();
         }
+
+        TypeID add_type(const string_type& name, const LogType& type);
+        TypeID add_type(const string_type& name, TypeFlagsType flags, size_t size,
+                        const Position& pos);
+        TypeID add_type(const string_type& name, TypeFlagsType flags, size_t size,
+                        int align, const Position& pos)
+        TypeID add_type(const string_type& name, TypeFlagsType flags, size_t size,
+                        int align, int alignas_, const Position& pos);
+
+        TypeID add_alias_type(const string_type& name, TypeID tid, const Position& pos);
+        TypeID add_alias_macro_type(const string_type& name, TypeID tid, const Position& pos);
+
+        VarID add_var(const string_type& name, TypeID tid, const Position& pos);
+        VarID add_var(const string_type& name, TypeID tid, const Position& pos, const Value& value);
+
+        TypeID add_const_type(TypeID tid);
+        TypeID add_pointer_type(TypeID tid, TypeFlagsType flags, const Position& pos);
+        TypeID add_array_type(TypeID tid, size_t count, const Position& pos);
+        TypeID add_func_type(const LogFunc& func, const Position& pos);
+        TypeID add_struct_type(const LogStruct& struct_, int alignas_, const Position& pos);
+        TypeID add_enum_type(const LogEnum& enum_, int alignas_, const Position& pos);
 
         static std::vector<LogScope>& all(void)
         {
