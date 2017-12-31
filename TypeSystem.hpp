@@ -51,9 +51,6 @@ namespace CodeReverse
     {
         TypeID      m_type_id = invalid_id();
         string_type m_name;
-
-        LogFuncParam(TypeID tid, const string_type& name)
-            : m_type_id(tid), m_name(name) { }
     };
 
     struct LogFunc
@@ -81,13 +78,8 @@ namespace CodeReverse
     {
         TypeID          m_type_id;
         string_type     m_name;
-        int             m_bit_offset;
-        int             m_bits;
-        LogStructMember() = default;
-        LogStructMember(TypeID tid, const string_type& name,
-            int bit_offset = 0, int bits = -1) :
-                m_type_id(tid), m_name(name),
-                    m_bit_offset(bit_offset), m_bits(bits) { }
+        int             m_bit_offset = 0;
+        int             m_bits = -1;
         bool operator==(const LogStructMember& other) const;
         bool operator!=(const LogStructMember& other) const;
     };
