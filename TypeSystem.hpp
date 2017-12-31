@@ -50,7 +50,7 @@ namespace CodeReverse
 
     struct LogFuncParam
     {
-        TypeID      m_type_id;
+        TypeID      m_type_id = invalid_id();
         string_type m_name;
 
         LogFuncParam(TypeID tid, const string_type& name)
@@ -59,17 +59,15 @@ namespace CodeReverse
 
     struct LogFunc
     {
-        FuncID      m_func_id;
-        bool        m_ellipse;
-        TypeID      m_return_type;
+        FuncID      m_func_id = invalid_id();
+        bool        m_ellipse = false;
+        TypeID      m_return_type = invalid_id();
 
         enum Convention {
             LFC_CDECL, LFC_STDCALL, LFC_FASTCALL
-        } m_convention;
-        std::vector<LogFuncParam> m_param_list;
+        } m_convention = LFC_CDECL;
 
-        LogFunc() : m_ellipse(false), m_return_type(-1),
-                    m_convention(LFC_CDECL) { }
+        std::vector<LogFuncParam> m_param_list;
 
         static std::vector<LogFunc>& all()
         {
@@ -98,19 +96,16 @@ namespace CodeReverse
 
     struct LogStruct
     {
-        TagID           m_tag_id;
-        TypeID          m_type_id;
-        bool            m_is_struct;
-        int             m_pack;
-        int             m_align;
-        int             m_alignas;
-        bool            m_alignas_explicit;
-        bool            m_is_complete;
+        TagID           m_tag_id = invalid_id();
+        TypeID          m_type_id = invalid_id();
+        bool            m_is_struct = true;
+        int             m_pack = 8;
+        int             m_align = 0;
+        int             m_alignas = 0;
+        bool            m_alignas_explicit = false;
+        bool            m_is_complete = false;
         std::vector<LogStructMember>  m_members;
 
-        LogStruct(bool is_struct = true) :
-            m_is_struct(is_struct), m_pack(8), m_align(0), m_alignas(0),
-            m_alignas_explicit(false), m_is_complete(false) { }
         bool operator==(const LogStruct& other) const;
         bool operator!=(const LogStruct& other) const;
 
@@ -167,13 +162,11 @@ namespace CodeReverse
 
     struct LogMacro
     {
-        int                         m_num_params;
-        bool                        m_ellipsis;
+        int                         m_num_params = 0;
+        bool                        m_ellipsis = false;
         string_type                 m_contents;
         std::vector<string_type>    m_params;
         Position                    m_pos;
-
-        LogMacro() : m_num_params(0), m_ellipsis(false) { }
 
         static std::vector<LogMacro>& all(void)
         {
@@ -233,7 +226,7 @@ namespace CodeReverse
         }                       m_kind;
 
         ScopeID                 m_scope_id = 0;
-        TypedValue              m_typed_value;
+        Value                   m_value;
         Position                m_pos;
 
         static std::vector<LogEntity>& all(void)
@@ -247,13 +240,13 @@ namespace CodeReverse
 
     struct LogTag
     {
-        TagID                   m_tag_id;
+        TagID                   m_tag_id = invalid_id();
         string_type             m_tag_name;
         enum {
             T_STRUCT, T_UNION, T_ENUM
-        }                       m_type;
-        TypeID                  m_type_id;
-        ScopeID                 m_scope_id;
+        }                       m_type = T_STRUCT;
+        TypeID                  m_type_id = invalid_id();
+        ScopeID                 m_scope_id = 0;
 
         static std::vector<LogTag>& all(void)
         {
@@ -267,10 +260,8 @@ namespace CodeReverse
 
     struct LogLabel
     {
-        LabelID         m_label_id;
-        string_type     m_label_name;
-        string_type     m_func_name;
-        ScopeID         m_scope_id;
+        LabelID         m_label_id = invalid_id();
+        ScopeID         m_scope_id = 0;
         Position        m_pos;
 
         static std::vector<LogLabel>& all(void)
