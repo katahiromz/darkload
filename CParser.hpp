@@ -69,7 +69,7 @@ namespace CodeReverse
         s_p<AST_translation_unit> m_ast;
         typedef std::set<string_type> typedef_names_type;
         typedef_names_type m_typedef_names;
-        std::set<string_type> m_enumor_constant_names;
+        std::set<string_type> m_enum_constant_names;
         typedef std::set<size_t> index_set_type;
 
         void add_typedef_name(const string_type& str);
@@ -1526,7 +1526,7 @@ namespace CodeReverse
         auto enumor = m_s<AST_enumerator>();
         if (auto ident = visit_identifier())
         {
-            m_enumor_constant_names.insert(ident->m_str);
+            m_enum_constant_names.insert(ident->m_str);
             enumor->m_ident = ident;
             if (next_if("="))
             {
@@ -2707,7 +2707,7 @@ namespace CodeReverse
             constant->m_type = AST_constant::C_FLOATING;
             break;
         case TK_IDENTIFIER:
-            if (m_enumor_constant_names.count(str()) > 0)
+            if (m_enum_constant_names.count(str()) > 0)
                 constant->m_type = AST_constant::C_ENUM;
             else
                 CR_RETURN_AST(nullptr);
