@@ -161,6 +161,14 @@ namespace CodeReverse
         {
             m_vec.push_back(ptr);
         }
+        s_p<T_ITEM>& get_at(size_t i)
+        {
+            return m_vec[i];
+        }
+        const s_p<T_ITEM>& get_at(size_t i) const
+        {
+            return m_vec[i];
+        }
     };
 
     /////////////////////////////////////////////////////////////////////////

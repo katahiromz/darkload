@@ -560,27 +560,8 @@ namespace CodeReverse
         {
             decl->m_decl_specs = decl_specs;
             auto k = i = index();
-            if (auto init_declor_list = visit_init_declarator_list())
+            for (size_t m = 0; m < 1 + int(is_typedef); ++m)
             {
-                decl->m_init_declor_list = init_declor_list;
-                i = index();
-            }
-            index(i);
-            while (scan_function_attribute(decl->m_attrs))
-            {
-                i = index();
-            }
-            if (next_if(";"))
-            {
-                care_of_typedefs(decl_specs, decl);
-                CR_RETURN_AST(decl);
-            }
-            // failed. retry with removing typedef-name
-            if (is_typedef && (*decl_specs.get())[decl_specs->size() - 1]->is_typedef_name())
-            {
-                decl_specs->resize(decl_specs->size() - 1);
-                index(k - 1);
-                i = index();
                 if (auto init_declor_list = visit_init_declarator_list())
                 {
                     decl->m_init_declor_list = init_declor_list;
@@ -596,6 +577,16 @@ namespace CodeReverse
                     care_of_typedefs(decl_specs, decl);
                     CR_RETURN_AST(decl);
                 }
+
+                if (decl_specs->size() <= 1 ||
+                    !decl_specs->get_at(decl_specs->size() - 1)->is_typedef_name())
+                {
+                    break;
+                }
+
+                // Failed. Retry with removing typedef-name.
+                decl_specs->resize(decl_specs->size() - 1);
+                index(k - 1);
             }
             CR_RETURN_AST(nullptr);
         }
