@@ -62,6 +62,48 @@ namespace CodeReverse
         return (flags & T_FLOATING);
     }
 
+    LogScope::LogScope(ScopeID parent_scope_id)
+    {
+        m_scope_id = all().size();
+
+        if (parent_scope_id == invalid_id())
+        {
+            TypeID tid;
+            Position pos("(predefined)");
+
+            add_type("void", T_VOID, 0, pos);
+
+            add_type("char", T_CHAR, sizeof(char), pos);
+            add_type("short", T_SHORT, sizeof(short), pos);
+            add_type("long", T_LONG, sizeof(long), pos);
+            tid = add_type("long long", T_LONGLONG, sizeof(long long), pos);
+            add_alias_type("__int64", tid, pos);
+
+            add_type("int", T_INT, sizeof(int), pos);
+
+            add_type("unsigned char", T_UNSIGNED | T_CHAR, sizeof(char), pos);
+            add_type("unsigned short", T_UNSIGNED | T_SHORT, sizeof(short), pos);
+            add_type("unsigned long", T_UNSIGNED | T_LONG, sizeof(long), pos);
+            tid = add_type("unsigned long long", T_UNSIGNED | T_LONGLONG, sizeof(long long), pos);
+            add_alias_type("unsigned __int64", tid, pos);
+
+            add_type("__int128", T_INT128, 128 / 8, pos);
+            add_type("unsigned __int128", T_UNSIGNED | T_INT128, 128 / 8, pos);
+
+            add_type("unsigned int", T_UNSIGNED | T_INT, sizeof(int), pos);
+
+            add_type("float", T_FLOAT, sizeof(float), pos);
+            add_type("double", T_DOUBLE, sizeof(double), pos);
+
+            add_type("long double", T_LONG | T_DOUBLE, sizeof(long double), pos);
+        }
+        else
+        {
+            m_parent_id = parent_scope_id;
+            all()[m_parent_id].m_child_scope_ids.insert(m_scope_id);
+        }
+    }
+
     EntryID LogScope::name_to_entry_id(const string_type& name) const
     {
         auto it = m_entry_map.find(name);
