@@ -13,12 +13,13 @@ namespace CodeReverse
 {
     typedef size_t ID;
     typedef ID EntityID;
-    typedef ID FuncID;
+        typedef EntityID EnumValueID;
+        typedef EntityID FuncID;
+        typedef EntityID VarID;
     typedef ID MacroID;
     typedef ID ScopeID;
     typedef ID TagID;
     typedef ID TypeID;
-    typedef ID VarID;
     typedef unsigned long TypeFlagsType;
 
     inline ID get_invalid_id(void)
@@ -26,17 +27,19 @@ namespace CodeReverse
         return ID(-1);
     }
 
-    typedef Value
+    struct TypedValue
     {
         TypeFlagsType               m_flags;
         union
         {
-            __int64                 m_int64;
             unsigned __int64        m_uint64;
-            int                     m_int;
+            __int64                 m_int64;
             unsigned int            m_uint;
+            int                     m_int;
         };
-        string_type                 m_value;
+        string_type                 m_str;
+
+        TypedValue();
     };
 
     /////////////////////////////////////////////////////////////////////////
@@ -133,7 +136,7 @@ namespace CodeReverse
     struct LogVar
     {
         string_type m_name;
-        Value       m_value;
+        TypedValue  m_typed_value;
         Position    m_pos;
         bool        m_is_macro;
         ScopeID     m_scope_id;
@@ -158,46 +161,35 @@ namespace CodeReverse
 
     /////////////////////////////////////////////////////////////////////////
 
-    struct Scope
+    struct LogScope
     {
         ScopeID                 m_scope_id;
-        size_t                  m_parent_id;
+        ScopeID                 m_parent_id;
         std::set<ScopeID>       m_child_scope_ids;
         std::set<EntityID>      m_entity_ids;
         std::set<TagID>         m_tag_ids;
-        static ScopeID get_next()
+        std::set<LabelID>       m_label_ids;
+        static ScopeID& get_current()
         {
             static ScopeID s_id = 0;
-            return s_id++;
+            return s_id;
         }
     };
-    FuncID scope_id_to_func_id(ScopeID sid);
-    ScopeID func_id_to_scope_id(FuncID fid);
+    std::vector<LogScope>& get_log_scopes(void);
 
-    // NOTE: An entity is a variable, a typedef-name, a enum-value or a function.
     struct Entity
     {
-        EntityID                m_entity_id;
-        string_type             m_entity_name;
+        EntityID                m_id;
+        string_type             m_name;
         enum Kind {
             E_VAR, E_TYPEDEF_NAME, E_ENUM_VALUE, E_FUNC
         }                       m_kind;
         TypeID                  m_type_id;
         ScopeID                 m_scope_id;
-        union
-        {
-            int                 m_int;
-            unsigned int        m_uint;
-            __int64             m_int64;
-            unsigned __int64    m_uint64;
-        };
+        TypedValue              m_typed_value;
     };
-    Entity& entity_id_to_entity(EntityID entity_id);
-
-    struct StructMember
-    {
-    };
-    struct Struct;
+    std::vector<Entity>& get_log_entities(void);
+    EntityID name_to_entity_id(const string_type& name);
 
     // NOTE: A tag is a struct, a union or an enum.
     struct Tag
@@ -206,22 +198,25 @@ namespace CodeReverse
         enum {
             T_STRUCT, T_UNION, T_ENUM
         } m_type;
-        string_type m_type_name;
         TypeID m_type_id;
         ScopeID m_scope_id;
     };
+    std::vector<Tag>& get_log_tags(void);
+    TagID tag_name_to_tag_id(const string_type& tag_name);
 
     struct Label
     {
         string_type m_label_name;
         string_type m_func_name;
     };
+    std::vector<Label>& get_log_labels(void);
+    LabelID name_to_label_id(const string_type& name);
 
     struct LogType
     {
-        TypeID              m_type_id;
-        string_type         m_type_name;
-        ID                  m_sub_id;
+        TypeID                      m_type_id;
+        string_type                 m_type_name;
+        ID                          m_sub_id;
 
         enum : TypeFlagsType
         {
@@ -245,7 +240,7 @@ namespace CodeReverse
             // enum values
             T_ENUM_VALUE    = 0x00000400 | T_INT,
             // floatings
-            T_FLOATING      = 0x00000800;
+            T_FLOATING      = 0x00000800,
             T_FLOAT         = T_FLOATING,
             T_DOUBLE        = 0x00001000 | T_FLOATING,
             T_FLOAT80       = 0x00001800 | T_FLOATING,
@@ -257,6 +252,7 @@ namespace CodeReverse
             // array, pointer, alias
             T_ARRAY         = 0x00010000,
             T_POINTER       = 0x00020000,
+            T_PTR64         = T_POINTER | T_INT64,
             T_ALIAS         = 0x00040000,
             // const, volatile, etc.
             T_CONST         = 0x00080000,
@@ -281,9 +277,9 @@ namespace CodeReverse
             T_STDCALL       = 0x80000000 | T_FUNC,
             T_CALL_MASK     = T_CDECL | T_FASTCALL | T_STDCALL,
         };
-        TypeFlagsType m_flags;
+        TypeFlagsType               m_flags;
 
-        size_t m_sizeof, m_countof, m_alignof;
+        size_t                      m_sizeof, m_countof, m_alignof;
 
         std::vector<TypeID>         m_type_ids;             // for T_FUNC or T_TAG
         std::vector<string_type>    m_type_names;           // for T_FUNC or T_TAG
@@ -307,5 +303,7 @@ namespace CodeReverse
         }
     };
 } // namespace CodeReverse
+
+/////////////////////////////////////////////////////////////////////////
 
 #endif  // ndef CODEREVERSE_TYPE_SYSTEM_HPP
