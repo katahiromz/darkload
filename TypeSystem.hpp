@@ -24,6 +24,7 @@ namespace CodeReverse
         typedef ID MacroID;     // for the index in LogMacro::all()
         typedef ID ScopeID;     // for the index in LogScope::all()
         typedef ID TagID;       // for the index in LogTag::all()
+        typedef ID EnumID;      // for the index in LogEnum::all()
 
     typedef std::unordered_map<string_type, ID> name2id_type;
 
@@ -47,12 +48,6 @@ namespace CodeReverse
     /////////////////////////////////////////////////////////////////////////
     // LogFunc
 
-    struct LogFuncParam
-    {
-        TypeID      m_type_id = invalid_id();
-        string_type m_name;
-    };
-
     struct LogFunc
     {
         string_type m_name;
@@ -63,7 +58,9 @@ namespace CodeReverse
             LFC_CDECL, LFC_STDCALL, LFC_FASTCALL
         } m_convention = LFC_CDECL;
 
-        std::vector<LogFuncParam> m_param_list;
+        std::vector<TypeID>         m_type_ids;
+        std::vector<string_type>    m_type_names;
+        std::vector<string_type>    m_param_names;
 
         static std::vector<LogFunc>& all()
         {
@@ -87,6 +84,7 @@ namespace CodeReverse
 
     struct LogStruct
     {
+        string_type     m_name;
         TagID           m_tag_id = invalid_id();
         TypeID          m_type_id = invalid_id();
         bool            m_is_struct = true;
@@ -115,6 +113,7 @@ namespace CodeReverse
 
     struct LogEnum
     {
+        string_type m_name;
         std::unordered_map<string_type, int> m_name2value;
         std::unordered_map<int, string_type> m_value2name;
         bool empty() const
@@ -137,9 +136,9 @@ namespace CodeReverse
         string_type m_name;
         TypeID      m_type_id = invalid_id();
         Position    m_pos;
+        ScopeID     m_scope_id = 0;
         Value       m_value;
         bool        m_is_macro = false;
-        ScopeID     m_scope_id = 0;
 
         static std::vector<LogVar>& all(void)
         {
@@ -171,7 +170,7 @@ namespace CodeReverse
 
     enum EntryType
     {
-        ET_VAR, ET_ENUM_VALUE, ET_TYPEDEF_NAME, ET_FUNC
+        ET_VAR, ET_ENUM_VALUE, ET_TYPE, ET_FUNC
     };
 
     struct LogEntity
@@ -299,22 +298,18 @@ namespace CodeReverse
 
     struct LogType
     {
-        string_type                 m_type_name;
-        ID                          m_sub_id = invalid_id();
-
         TypeFlagsType               m_flags = T_INVALID;
-
+        ID                          m_sub_id = invalid_id();
         size_t                      m_sizeof = 0;
+        Position                    m_pos;
+        ScopeID                     m_scope_id = invalid_id();
+
         size_t                      m_countof = 0;
         size_t                      m_alignof = 8;
 
-        std::vector<TypeID>         m_type_ids;             // for T_FUNC or T_TAG
-        std::vector<string_type>    m_type_names;           // for T_FUNC or T_TAG
-        std::vector<string_type>    m_member_names;         // for T_FUNC or T_TAG
+        bool                        m_incomplete = false;
 
-        ScopeID                     m_scope_id = invalid_id();
 
-        Position                    m_pos;
         bool                        m_is_macro = false;
 
         static TypeFlagsType normalize_flags(TypeFlagsType flags);
@@ -375,31 +370,178 @@ namespace CodeReverse
             return name_to_label_id(name) != invalid_id();
         }
 
-        TypeID add_type(const string_type& name, const LogType& type);
+        TypeID add_type(const string_type& name, const LogType& type,
+                        const Position& pos)
+        {
+            TypeID tid = LogType::all().size();
+            LogType::all().push_back(type);
+            LogEntity entity { name, ET_TYPE, tid, tid, m_scope_id, pos };
+            LogEntity::all().push_back(entity);
+            m_type_map[name] = tid;
+            return tid;
+        }
         TypeID add_type(const string_type& name, TypeFlagsType flags, size_t size,
-                        const Position& pos);
+                        const Position& pos)
+        {
+            return add_type(name, LogType { flags, size, pos });
+        }
         TypeID add_type(const string_type& name, TypeFlagsType flags, size_t size,
-                        int align, const Position& pos)
+                                  int align, const Position& pos)
+        {
+            return add_type(name, LogType { flags, size, align, pos });
+        }
         TypeID add_type(const string_type& name, TypeFlagsType flags, size_t size,
-                        int align, int alignas_, const Position& pos);
+                                  int align, int alignas_, const Position& pos)
+        {
+            return add_type(name, LogType { flags, size, align, alignas_, location });
+        }
+        TypeID add_alias_type(const string_type& name, TypeID tid, const Position& pos)
+        {
+            LogType new_type = LogType::all()[tid];
+            new_type.m_flags = T_ALIAS;
+            new_type.m_sub_id = tid;
+            return add_type(name, new_type, pos);
+        }
+        TypeID add_alias_macro_type(const string_type& name, TypeID tid, const Position& pos)
+        {
+        }
+        VarID add_var(const string_type& name, TypeID tid, const Position& pos)
+        {
+            LogVar var { name, tid, pos, m_scope_id };
+            VarID vid = LogVar::all().size();
+            LogVar::all().push_back(var);
+            return vid;
+        }
+        VarID add_var(const string_type& name, TypeID tid, const Position& pos,
+                      const Value& value)
+        {
+            LogVar var { name, tid, pos, m_scope_id, value };
+            VarID vid = LogVar::all().size();
+            LogVar::all().push_back(var);
+            return vid;
+        }
+        TypeID add_const_type(TypeID tid)
+        {
+            LogType new_type = LogType::all()[tid];
+            new_type.m_sub_id = tid;
+            new_type.m_flags = T_CONST;
+            return add_type("const " + new_type.m_name, new_type);
+        }
+        TypeID add_pointer_type(TypeID tid, TypeFlagsType flags, const Position& pos)
+        {
+            LogType new_type = LogType::all()[tid];
+            new_type.m_sub_id = tid;
+            new_type.m_flags = T_POINTER | flags;
 
-        TypeID add_alias_type(const string_type& name, TypeID tid, const Position& pos);
-        TypeID add_alias_macro_type(const string_type& name, TypeID tid, const Position& pos);
+            if (flags & T_INT64)
+                new_type.m_sizeof = 64 / 8;
+            else
+                new_type.m_sizeof = sizeof(void*);
 
-        VarID add_var(const string_type& name, TypeID tid, const Position& pos);
-        VarID add_var(const string_type& name, TypeID tid, const Position& pos, const Value& value);
+            string_type name = new_type.m_name;
+            if (flags & T_CONST)
+                name = "const " + name;
+            if (flags & T_VOLATILE)
+                name = "volatile " + name;
+            name += "*";
+            return add_type(name, new_type);
+        }
+        TypeID add_array_type(TypeID tid, size_t count, const Position& pos)
+        {
+            LogType new_type = LogType::all()[tid];
+            new_type.m_sub_id = tid;
+            new_type.m_flags = T_ARRAY;
+            new_type.m_countof = count;
+            new_type.m_sizeof *= count;
 
-        TypeID add_const_type(TypeID tid);
-        TypeID add_pointer_type(TypeID tid, TypeFlagsType flags, const Position& pos);
-        TypeID add_array_type(TypeID tid, size_t count, const Position& pos);
-        TypeID add_func_type(const LogFunc& func, const Position& pos);
-        TypeID add_struct_type(const LogStruct& struct_, int alignas_, const Position& pos);
-        TypeID add_enum_type(const LogEnum& enum_, int alignas_, const Position& pos);
+            string_type name = new_type.m_name;
+            if (flags & T_CONST)
+                name = "const " + name;
+            if (flags & T_VOLATILE)
+                name = "volatile " + name;
+            name += "[";
+            name += std::to_string(count);
+            name += "]";
+            return add_type(name, new_type);
+        }
+        TypeID add_func_type(const FuncID fid, const Position& pos)
+        {
+            LogFunc& func = LogFunc::all()[fid];
+            LogType new_type;
+            new_type.m_flags = T_FUNC;
+            new_type.m_sub_id = fid;
+            new_type.m_sizeof = sizeof(void *);
+            new_type.m_pos = pos;
+            new_type.m_countof = 1;
+            new_type.m_alignof = 8;
+            new_type.m_scope_id = m_scope_id;
+            return add_type(m_name, new_type);
+        }
+        TypeID add_struct_type(const StructID sid, const Position& pos)
+        {
+            LogStruct& stru = LogStruct::all()[sid];
+            LogType new_type;
+            new_type.m_name = stru.m_name;
+            new_type.m_flags = T_STRUCT;
+            new_type.m_sub_id = sid;
+            new_type.m_sizeof = ...
+            new_type.m_pos = pos;
+            new_type.m_countof = stru.size();
+            new_type.m_alignof = 8;
+            new_type.m_scope_id = m_scope_id;
+            return add_type(m_name, new_type);
+        }
+        TypeID add_enum_type(EnumID eid, const Position& pos)
+        {
+            LogEnum& e = LogEnum::all()[eid];
+            LogType new_type;
+            new_type.m_name = e.m_name;
+            new_type.m_flags = T_ENUM;
+            new_type.m_sub_id = eid;
+            new_type.m_sizeof = sizeof(int);
+            new_type.m_pos = pos;
+            new_type.m_countof = e.m_name2value.size();
+            new_type.m_alignof = 8;
+            new_type.m_scope_id = m_scope_id;
+            return add_type(m_name, new_type);
+        }
 
         static std::vector<LogScope>& all(void)
         {
             static std::vector<LogScope> s_log_scopes;
             return s_log_scopes;
+        }
+    protected:
+        void init_default_scope()
+        {
+            TypeID tid;
+            Position pos("(predefined)");
+
+            add_type("void", T_VOID, 0, pos);
+
+            add_type("char", T_CHAR, sizeof(char), pos);
+            add_type("short", T_SHORT, sizeof(short), pos);
+            add_type("long", T_LONG, sizeof(long), pos);
+            tid = add_type("long long", T_LONGLONG, sizeof(long long), pos);
+            add_alias_type("__int64", tid, pos);
+
+            add_type("int", T_INT, sizeof(int), pos);
+
+            add_type("unsigned char", T_UNSIGNED | T_CHAR, sizeof(char), pos);
+            add_type("unsigned short", T_UNSIGNED | T_SHORT, sizeof(short), pos);
+            add_type("unsigned long", T_UNSIGNED | T_LONG, sizeof(long), pos);
+            tid = add_type("unsigned long long", T_UNSIGNED | T_LONGLONG, sizeof(long long), pos);
+            add_alias_type("unsigned __int64", tid, pos);
+
+            add_type("__int128", T_INT128, 128 / 8, pos);
+            add_type("unsigned __int128", T_UNSIGNED | T_INT128, 128 / 8, pos);
+
+            add_type("unsigned int", T_UNSIGNED | T_INT, sizeof(int), pos);
+
+            add_type("float", T_FLOAT, sizeof(float), pos);
+            add_type("double", T_DOUBLE, sizeof(double), pos);
+
+            add_type("long double", T_LONG | T_DOUBLE, sizeof(long double), pos);
         }
     };
 } // namespace CodeReverse

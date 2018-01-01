@@ -60,106 +60,17 @@ namespace CodeReverse
     /////////////////////////////////////////////////////////////////////////
     // adding types
 
-    TypeID LogScope::add_type(const string_type& name, const LogType& type)
-    {
-        TypeID tid = LogType::all().size();
-        LogType::all().push_back(type);
-        LogEntity::all().push_back(...);
-        m_type_map[name] = tid;
-        return tid;
-    }
-    TypeID LogScope::add_type(const string_type& name, TypeFlagsType flags, size_t size,
-                              const Position& pos)
-    {
-    }
-    TypeID LogScope::add_type(const string_type& name, TypeFlagsType flags, size_t size,
-                              int align, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_type(const string_type& name, TypeFlagsType flags, size_t size,
-                              int align, int alignas_, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_alias_type(const string_type& name, TypeID tid, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_alias_macro_type(const string_type& name, TypeID tid, const Position& pos)
-    {
-    }
-    VarID LogScope::add_var(const string_type& name, TypeID tid, const Position& pos)
-    {
-    }
-    VarID LogScope::add_var(const string_type& name, TypeID tid, const Position& pos, const Value& value)
-    {
-    }
-    TypeID LogScope::add_const_type(TypeID tid)
-    {
-        auto& type = LogType::all()[tid];
-        LogType new_type;
-        new_type.m_sub_id = tid;
-        new_type.m_flags = T_CONST;
-        new_type.m_sizeof = type.m_sizeof;
-        new_type.m_countof = type.m_countof;
-        new_type.m_alignof = type.m_alignof;
-        new_type.m_scope_id = m_scope_id;
-        new_type.m_pos = type.m_pos;
-        new_type.m_is_macro = false;
-        return add_type("", new_type);
-    }
-    TypeID LogScope::add_pointer_type(TypeID tid, TypeFlagsType flags, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_array_type(TypeID tid, size_t count, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_func_type(const LogFunc& func, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_struct_type(const LogStruct& struct_, int alignas_, const Position& pos)
-    {
-    }
-    TypeID LogScope::add_enum_type(const LogEnum& enum_, int alignas_, const Position& pos)
-    {
-    }
-
     LogScope::LogScope(ScopeID parent_scope_id)
     {
         m_scope_id = all().size();
+        m_parent_id = parent_scope_id;
 
         if (parent_scope_id == invalid_id())
         {
-            TypeID tid;
-            Position pos("(predefined)");
-
-            add_type("void", T_VOID, 0, pos);
-
-            add_type("char", T_CHAR, sizeof(char), pos);
-            add_type("short", T_SHORT, sizeof(short), pos);
-            add_type("long", T_LONG, sizeof(long), pos);
-            tid = add_type("long long", T_LONGLONG, sizeof(long long), pos);
-            add_alias_type("__int64", tid, pos);
-
-            add_type("int", T_INT, sizeof(int), pos);
-
-            add_type("unsigned char", T_UNSIGNED | T_CHAR, sizeof(char), pos);
-            add_type("unsigned short", T_UNSIGNED | T_SHORT, sizeof(short), pos);
-            add_type("unsigned long", T_UNSIGNED | T_LONG, sizeof(long), pos);
-            tid = add_type("unsigned long long", T_UNSIGNED | T_LONGLONG, sizeof(long long), pos);
-            add_alias_type("unsigned __int64", tid, pos);
-
-            add_type("__int128", T_INT128, 128 / 8, pos);
-            add_type("unsigned __int128", T_UNSIGNED | T_INT128, 128 / 8, pos);
-
-            add_type("unsigned int", T_UNSIGNED | T_INT, sizeof(int), pos);
-
-            add_type("float", T_FLOAT, sizeof(float), pos);
-            add_type("double", T_DOUBLE, sizeof(double), pos);
-
-            add_type("long double", T_LONG | T_DOUBLE, sizeof(long double), pos);
+            init_default_scope();
         }
         else
         {
-            m_parent_id = parent_scope_id;
             all()[m_parent_id].m_child_scope_ids.insert(m_scope_id);
         }
     }
